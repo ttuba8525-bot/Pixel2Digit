@@ -10,6 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initDragAndDrop();
     initNavbarScroll();
     initMobileNav();
+    initThemeToggle();
+    initAnnNeuronVisualizer();
     
     // Load Model Info and Metrics from API (with Mock Fallback)
     fetchModelInfo();
@@ -622,6 +624,23 @@ async function resetLabSystem() {
     // Reset indicators
     resetJourneySteps();
     resetLayerGlows();
+
+    // Reset ANN Neuron Panel
+    const annBadge = document.getElementById('annStatusBadge');
+    if (annBadge) { annBadge.textContent = 'Idle'; annBadge.className = 'ann-status-badge'; }
+    const annWaiting = document.getElementById('annPredWaiting');
+    const annOutput  = document.getElementById('annPredOutput');
+    if (annWaiting) annWaiting.style.display = 'flex';
+    if (annOutput)  annOutput.style.display  = 'none';
+    const annSvg = document.getElementById('predAnnSvg');
+    if (annSvg) {
+        annSvg.querySelectorAll('.ann-node-circle').forEach(n => n.classList.remove('node-active','node-firing','output-winner'));
+        annSvg.querySelectorAll('.ann-conn-group').forEach(g => g.classList.remove('conn-active'));
+        document.getElementById('ann-signals').innerHTML = '';
+    }
+    resetAnnPhases();
+    window._annNeuronAnimating = false;
+
     
     try {
         await fetch(API_RESET, { method: 'POST' });
@@ -811,6 +830,11 @@ function updatePredictionUI(data) {
     
     // 9. Glow architecture output layer
     highlightLayer('output');
+
+    // 10. Animate ANN Neuron Panel
+    const digitNum = digit !== undefined ? parseInt(digit) : 0;
+    const confNum  = confidence !== undefined ? parseFloat(confidence) : 0;
+    animateAnnNeuronPanel(digitNum, confNum);
 }
 
 // Chart.js render function
@@ -1412,4 +1436,226 @@ function showToast(title, message, type = 'success') {
             setTimeout(() => toast.remove(), 300);
         }
     }, 4500);
+}
+
+/* ==========================================================================
+   LIGHT MODE TOGGLE
+   ========================================================================== */
+function initThemeToggle() {
+    const btn = document.getElementById('themeToggleBtn');
+    const icon = document.getElementById('themeIcon');
+    if (!btn) return;
+
+    // Restore saved preference
+    const saved = localStorage.getItem('neurovision-theme');
+    if (saved === 'light') {
+        document.body.classList.add('light-mode');
+        icon.className = 'fa-solid fa-moon';
+    }
+
+    btn.addEventListener('click', () => {
+        const isLight = document.body.classList.toggle('light-mode');
+        if (isLight) {
+            icon.className = 'fa-solid fa-moon';
+            localStorage.setItem('neurovision-theme', 'light');
+            showToast('Light Mode', 'Switched to light theme.', 'success');
+        } else {
+            icon.className = 'fa-solid fa-sun';
+            localStorage.setItem('neurovision-theme', 'dark');
+            showToast('Dark Mode', 'Switched to dark theme.', 'success');
+        }
+    });
+}
+
+/* ==========================================================================
+   ANN NEURON VISUALIZER
+   ========================================================================== */
+function initAnnNeuronVisualizer() {
+    // Hook into prediction pipeline — wrap startInferenceAnimation
+    const origStart = window.startInferenceAnimation || startInferenceAnimation;
+    const origStop  = window.stopInferenceAnimation  || stopInferenceAnimation;
+
+    window._annNeuronAnimating = false;
+}
+
+/**
+ * Called when a prediction result arrives — runs the full layered animation
+ * on the neuron panel SVG and then shows the predicted digit.
+ */
+async function animateAnnNeuronPanel(predictedDigit, confidence) {
+    if (window._annNeuronAnimating) return;
+    window._annNeuronAnimating = true;
+
+    const badge   = document.getElementById('annStatusBadge');
+    const waiting = document.getElementById('annPredWaiting');
+    const output  = document.getElementById('annPredOutput');
+    const svg     = document.getElementById('predAnnSvg');
+    if (!svg) return;
+
+    // Reset all node states
+    svg.querySelectorAll('.ann-node-circle').forEach(n => {
+        n.classList.remove('node-active', 'node-firing', 'output-winner');
+    });
+    svg.querySelectorAll('.ann-conn-group').forEach(g => g.classList.remove('conn-active'));
+    resetAnnPhases();
+
+    // Show predicting badge
+    badge.textContent = 'Predicting...';
+    badge.className = 'ann-status-badge predicting';
+    waiting.style.display = 'flex';
+    output.style.display  = 'none';
+
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+    // ── PHASE 1: Input layer fires ──────────────────────────────────────────
+    setAnnPhase('phase-input', true);
+    const inputNodes = svg.querySelectorAll('#layer-input .ann-node-circle');
+    inputNodes.forEach((n, i) => {
+        setTimeout(() => n.classList.add('node-active'), i * 60);
+    });
+    await spawnSignals(svg, 'conn-in-h1', 5, '#A855F7');
+    await sleep(300);
+
+    // ── PHASE 2: Hidden layer 1 fires ───────────────────────────────────────
+    setAnnPhase('phase-h1', true);
+    document.getElementById('conn-in-h1').classList.add('conn-active');
+    const h1Nodes = svg.querySelectorAll('#layer-h1 .ann-node-circle');
+    h1Nodes.forEach((n, i) => {
+        setTimeout(() => {
+            n.classList.remove('node-active');
+            n.classList.add('node-firing');
+            setTimeout(() => n.classList.remove('node-firing'), 400);
+        }, i * 55);
+    });
+    await spawnSignals(svg, 'conn-h1-h2', 4, '#8B5CF6');
+    await sleep(300);
+
+    // ── PHASE 3: Hidden layer 2 fires ───────────────────────────────────────
+    setAnnPhase('phase-h2', true);
+    document.getElementById('conn-h1-h2').classList.add('conn-active');
+    const h2Nodes = svg.querySelectorAll('#layer-h2 .ann-node-circle');
+    h2Nodes.forEach((n, i) => {
+        setTimeout(() => {
+            n.classList.add('node-firing');
+            setTimeout(() => n.classList.remove('node-firing'), 380);
+        }, i * 70);
+    });
+    await spawnSignals(svg, 'conn-h2-h3', 3, '#7C3AED');
+    await sleep(280);
+
+    // ── PHASE 4: Hidden layer 3 fires ───────────────────────────────────────
+    setAnnPhase('phase-h3', true);
+    document.getElementById('conn-h2-h3').classList.add('conn-active');
+    const h3Nodes = svg.querySelectorAll('#layer-h3 .ann-node-circle');
+    h3Nodes.forEach((n, i) => {
+        setTimeout(() => {
+            n.classList.add('node-firing');
+            setTimeout(() => n.classList.remove('node-firing'), 350);
+        }, i * 80);
+    });
+    await spawnSignals(svg, 'conn-h3-out', 4, '#6D28D9');
+    await sleep(280);
+
+    // ── PHASE 5: Output layer — highlight winning node ──────────────────────
+    setAnnPhase('phase-output', true);
+    document.getElementById('conn-h3-out').classList.add('conn-active');
+    const outputNodes = svg.querySelectorAll('#layer-output .ann-node-circle');
+    outputNodes.forEach((n, i) => {
+        const digit = parseInt(n.getAttribute('data-digit'));
+        setTimeout(() => {
+            if (digit === predictedDigit) {
+                n.classList.add('output-winner');
+            } else {
+                n.classList.add('node-active');
+                setTimeout(() => n.classList.remove('node-active'), 500);
+            }
+        }, i * 40);
+    });
+
+    await sleep(600);
+
+    // ── Show result ──────────────────────────────────────────────────────────
+    badge.textContent = 'Done ✓';
+    badge.className = 'ann-status-badge done';
+
+    document.getElementById('annPredDigitVal').textContent  = predictedDigit;
+    document.getElementById('annPredDigitConf').textContent = `${parseFloat(confidence).toFixed(1)}% confidence`;
+    document.getElementById('annNodeIdx').textContent = predictedDigit;
+
+    waiting.style.display = 'none';
+    output.style.display  = 'grid';
+
+    window._annNeuronAnimating = false;
+}
+
+/** Sets a phase label as active/inactive */
+function setAnnPhase(phaseId, active) {
+    const el = document.getElementById(phaseId);
+    if (!el) return;
+    if (active) el.classList.add('phase-active');
+    else        el.classList.remove('phase-active');
+}
+
+function resetAnnPhases() {
+    ['phase-input','phase-h1','phase-h2','phase-h3','phase-output'].forEach(id => setAnnPhase(id, false));
+}
+
+/**
+ * Spawns animated signal dots that travel along the connection lines of a group.
+ * @param {SVGElement} svg
+ * @param {string} groupId    - e.g. 'conn-in-h1'
+ * @param {number} count      - how many signals to spawn
+ * @param {string} color      - signal dot color
+ */
+async function spawnSignals(svg, groupId, count, color) {
+    const group = svg.getElementById ? svg.getElementById(groupId) : document.getElementById(groupId);
+    if (!group) return;
+    const lines = Array.from(group.querySelectorAll('line'));
+    if (lines.length === 0) return;
+
+    const signalContainer = document.getElementById('ann-signals');
+    const duration = 450; // ms
+
+    // Pick `count` random lines to animate
+    const chosen = [];
+    for (let i = 0; i < count; i++) {
+        chosen.push(lines[Math.floor(Math.random() * lines.length)]);
+    }
+
+    const promises = chosen.map((line, idx) => new Promise(resolve => {
+        const x1 = parseFloat(line.getAttribute('x1'));
+        const y1 = parseFloat(line.getAttribute('y1'));
+        const x2 = parseFloat(line.getAttribute('x2'));
+        const y2 = parseFloat(line.getAttribute('y2'));
+
+        const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        dot.setAttribute('r', '4');
+        dot.setAttribute('fill', color);
+        dot.setAttribute('filter', 'url(#glow)');
+        dot.setAttribute('cx', x1);
+        dot.setAttribute('cy', y1);
+        dot.classList.add('ann-signal-dot');
+        signalContainer.appendChild(dot);
+
+        const delay = idx * 60;
+        const startTime = performance.now() + delay;
+
+        function step(now) {
+            const elapsed = now - startTime;
+            if (elapsed < 0) { requestAnimationFrame(step); return; }
+            const t = Math.min(elapsed / duration, 1);
+            const eased = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; // ease in-out
+            dot.setAttribute('cx', x1 + (x2 - x1) * eased);
+            dot.setAttribute('cy', y1 + (y2 - y1) * eased);
+            if (t < 1) {
+                requestAnimationFrame(step);
+            } else {
+                dot.remove();
+                resolve();
+            }
+        }
+        requestAnimationFrame(step);
+    }));
+
+    await Promise.all(promises);
 }
