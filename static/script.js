@@ -1579,11 +1579,11 @@ async function animateAnnNeuronPanel(predictedDigit, confidence) {
     badge.className = 'ann-status-badge done';
 
     document.getElementById('annPredDigitVal').textContent  = predictedDigit;
-    document.getElementById('annPredDigitConf').textContent = `${parseFloat(confidence).toFixed(1)}% confidence`;
+    document.getElementById('annPredDigitConf').textContent = `${parseFloat(confidence).toFixed(1)}%`;
     document.getElementById('annNodeIdx').textContent = predictedDigit;
 
     waiting.style.display = 'none';
-    output.style.display  = 'grid';
+    output.style.display  = 'flex';
 
     window._annNeuronAnimating = false;
 }

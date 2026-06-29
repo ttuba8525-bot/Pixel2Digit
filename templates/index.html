@@ -364,6 +364,188 @@
                         </div>
                     </div>
 
+                    <!-- ANN NEURON VISUALIZER COLUMN -->
+                    <div class="dashboard-card card-ann-neuron" id="annNeuronPanel">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-brain"></i> Live ANN Model
+                                <div class="ann-status-badge" id="annStatusBadge">Idle</div>
+                            </h3>
+                        </div>
+
+                        <!-- Compact vertical SVG: top→bottom flow -->
+                        <div class="ann-svg-wrapper">
+                            <svg id="predAnnSvg" viewBox="0 0 120 520" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <linearGradient id="connGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" stop-color="#7C3AED" stop-opacity="0.5"/>
+                                        <stop offset="100%" stop-color="#A855F7" stop-opacity="0.5"/>
+                                    </linearGradient>
+                                    <linearGradient id="activeConnGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" stop-color="#A855F7"/>
+                                        <stop offset="100%" stop-color="#00F5FF"/>
+                                    </linearGradient>
+                                    <filter id="glow">
+                                        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                                        <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                                    </filter>
+                                    <filter id="strongGlow">
+                                        <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
+                                        <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                                    </filter>
+                                </defs>
+
+                                <!-- ── INPUT LAYER (y=45) ── -->
+                                <text x="60" y="10" class="ann-layer-label" text-anchor="middle">Input</text>
+                                <text x="60" y="22" class="ann-layer-label" text-anchor="middle">784 nodes</text>
+                                <g id="layer-input" class="ann-layer-nodes">
+                                    <circle cx="20" cy="45" r="7" class="ann-node-circle input-circle"/>
+                                    <circle cx="40" cy="45" r="7" class="ann-node-circle input-circle"/>
+                                    <circle cx="60" cy="45" r="7" class="ann-node-circle input-circle"/>
+                                    <circle cx="80" cy="45" r="7" class="ann-node-circle input-circle"/>
+                                    <circle cx="100" cy="45" r="7" class="ann-node-circle input-circle"/>
+                                    <text x="60" y="60" class="ann-dots" text-anchor="middle" font-size="8">•••</text>
+                                </g>
+
+                                <!-- Input → H1 connections -->
+                                <g id="conn-in-h1" class="ann-conn-group">
+                                    <line x1="20" y1="52" x2="25" y2="118" stroke="url(#connGrad)" stroke-width="1"/>
+                                    <line x1="40" y1="52" x2="45" y2="118" stroke="url(#connGrad)" stroke-width="1"/>
+                                    <line x1="60" y1="52" x2="60" y2="118" stroke="url(#connGrad)" stroke-width="1"/>
+                                    <line x1="80" y1="52" x2="75" y2="118" stroke="url(#connGrad)" stroke-width="1"/>
+                                    <line x1="100" y1="52" x2="95" y2="118" stroke="url(#connGrad)" stroke-width="1"/>
+                                    <line x1="20" y1="52" x2="75" y2="118" stroke="url(#connGrad)" stroke-width="0.7"/>
+                                    <line x1="100" y1="52" x2="45" y2="118" stroke="url(#connGrad)" stroke-width="0.7"/>
+                                </g>
+
+                                <!-- ── HIDDEN LAYER 1 (y=125) ── -->
+                                <text x="60" y="108" class="ann-layer-label" text-anchor="middle">Dense 256</text>
+                                <g id="layer-h1" class="ann-layer-nodes">
+                                    <circle cx="25" cy="125" r="7" class="ann-node-circle hidden-circle"/>
+                                    <circle cx="45" cy="125" r="7" class="ann-node-circle hidden-circle"/>
+                                    <circle cx="60" cy="125" r="7" class="ann-node-circle hidden-circle"/>
+                                    <circle cx="75" cy="125" r="7" class="ann-node-circle hidden-circle"/>
+                                    <circle cx="95" cy="125" r="7" class="ann-node-circle hidden-circle"/>
+                                    <text x="60" y="140" class="ann-dots" text-anchor="middle" font-size="8">•••</text>
+                                </g>
+
+                                <!-- H1 → H2 connections -->
+                                <g id="conn-h1-h2" class="ann-conn-group">
+                                    <line x1="25" y1="132" x2="30" y2="198" stroke="url(#connGrad)" stroke-width="1"/>
+                                    <line x1="45" y1="132" x2="50" y2="198" stroke="url(#connGrad)" stroke-width="1"/>
+                                    <line x1="60" y1="132" x2="60" y2="198" stroke="url(#connGrad)" stroke-width="1"/>
+                                    <line x1="75" y1="132" x2="70" y2="198" stroke="url(#connGrad)" stroke-width="1"/>
+                                    <line x1="95" y1="132" x2="90" y2="198" stroke="url(#connGrad)" stroke-width="1"/>
+                                    <line x1="25" y1="132" x2="70" y2="198" stroke="url(#connGrad)" stroke-width="0.7"/>
+                                    <line x1="95" y1="132" x2="50" y2="198" stroke="url(#connGrad)" stroke-width="0.7"/>
+                                </g>
+
+                                <!-- ── HIDDEN LAYER 2 (y=205) ── -->
+                                <text x="60" y="188" class="ann-layer-label" text-anchor="middle">Dense 128</text>
+                                <g id="layer-h2" class="ann-layer-nodes">
+                                    <circle cx="30" cy="205" r="7" class="ann-node-circle hidden-circle"/>
+                                    <circle cx="50" cy="205" r="7" class="ann-node-circle hidden-circle"/>
+                                    <circle cx="60" cy="205" r="7" class="ann-node-circle hidden-circle"/>
+                                    <circle cx="70" cy="205" r="7" class="ann-node-circle hidden-circle"/>
+                                    <circle cx="90" cy="205" r="7" class="ann-node-circle hidden-circle"/>
+                                    <text x="60" y="220" class="ann-dots" text-anchor="middle" font-size="8">•••</text>
+                                </g>
+
+                                <!-- H2 → H3 connections -->
+                                <g id="conn-h2-h3" class="ann-conn-group">
+                                    <line x1="30" y1="212" x2="35" y2="278" stroke="url(#connGrad)" stroke-width="1"/>
+                                    <line x1="50" y1="212" x2="50" y2="278" stroke="url(#connGrad)" stroke-width="1"/>
+                                    <line x1="60" y1="212" x2="60" y2="278" stroke="url(#connGrad)" stroke-width="1"/>
+                                    <line x1="70" y1="212" x2="70" y2="278" stroke="url(#connGrad)" stroke-width="1"/>
+                                    <line x1="90" y1="212" x2="85" y2="278" stroke="url(#connGrad)" stroke-width="1"/>
+                                    <line x1="30" y1="212" x2="70" y2="278" stroke="url(#connGrad)" stroke-width="0.7"/>
+                                    <line x1="90" y1="212" x2="50" y2="278" stroke="url(#connGrad)" stroke-width="0.7"/>
+                                </g>
+
+                                <!-- ── HIDDEN LAYER 3 (y=285) ── -->
+                                <text x="60" y="268" class="ann-layer-label" text-anchor="middle">Dense 64</text>
+                                <g id="layer-h3" class="ann-layer-nodes">
+                                    <circle cx="35" cy="285" r="7" class="ann-node-circle hidden-circle"/>
+                                    <circle cx="55" cy="285" r="7" class="ann-node-circle hidden-circle"/>
+                                    <circle cx="60" cy="285" r="7" class="ann-node-circle hidden-circle"/>
+                                    <circle cx="65" cy="285" r="7" class="ann-node-circle hidden-circle"/>
+                                    <circle cx="85" cy="285" r="7" class="ann-node-circle hidden-circle"/>
+                                    <text x="60" y="300" class="ann-dots" text-anchor="middle" font-size="8">•••</text>
+                                </g>
+
+                                <!-- H3 → Output connections -->
+                                <g id="conn-h3-out" class="ann-conn-group">
+                                    <line x1="35" y1="292" x2="20" y2="358" stroke="url(#connGrad)" stroke-width="0.8"/>
+                                    <line x1="55" y1="292" x2="40" y2="358" stroke="url(#connGrad)" stroke-width="0.8"/>
+                                    <line x1="60" y1="292" x2="60" y2="358" stroke="url(#connGrad)" stroke-width="0.8"/>
+                                    <line x1="65" y1="292" x2="80" y2="358" stroke="url(#connGrad)" stroke-width="0.8"/>
+                                    <line x1="85" y1="292" x2="100" y2="358" stroke="url(#connGrad)" stroke-width="0.8"/>
+                                    <line x1="35" y1="292" x2="80" y2="358" stroke="url(#connGrad)" stroke-width="0.5"/>
+                                    <line x1="85" y1="292" x2="40" y2="358" stroke="url(#connGrad)" stroke-width="0.5"/>
+                                    <line x1="60" y1="292" x2="20" y2="358" stroke="url(#connGrad)" stroke-width="0.5"/>
+                                    <line x1="60" y1="292" x2="100" y2="358" stroke="url(#connGrad)" stroke-width="0.5"/>
+                                    <line x1="60" y1="292" x2="40" y2="488" stroke="url(#connGrad)" stroke-width="0.4"/>
+                                    <line x1="60" y1="292" x2="80" y2="488" stroke="url(#connGrad)" stroke-width="0.4"/>
+                                </g>
+
+                                <!-- ── OUTPUT LAYER (10 nodes, y=358..488) ── -->
+                                <text x="60" y="348" class="ann-layer-label" text-anchor="middle">Output (Softmax)</text>
+                                <g id="layer-output" class="ann-layer-nodes">
+                                    <circle cx="20"  cy="365" r="7" class="ann-node-circle output-circle" data-digit="0"/>
+                                    <circle cx="40"  cy="378" r="7" class="ann-node-circle output-circle" data-digit="1"/>
+                                    <circle cx="60"  cy="391" r="7" class="ann-node-circle output-circle" data-digit="2"/>
+                                    <circle cx="80"  cy="404" r="7" class="ann-node-circle output-circle" data-digit="3"/>
+                                    <circle cx="100" cy="417" r="7" class="ann-node-circle output-circle" data-digit="4"/>
+                                    <circle cx="20"  cy="430" r="7" class="ann-node-circle output-circle" data-digit="5"/>
+                                    <circle cx="40"  cy="443" r="7" class="ann-node-circle output-circle" data-digit="6"/>
+                                    <circle cx="60"  cy="456" r="7" class="ann-node-circle output-circle" data-digit="7"/>
+                                    <circle cx="80"  cy="469" r="7" class="ann-node-circle output-circle" data-digit="8"/>
+                                    <circle cx="100" cy="482" r="7" class="ann-node-circle output-circle" data-digit="9"/>
+                                    <!-- Labels -->
+                                    <text x="10"  y="369" class="ann-output-label">0</text>
+                                    <text x="30"  y="382" class="ann-output-label">1</text>
+                                    <text x="50"  y="395" class="ann-output-label">2</text>
+                                    <text x="70"  y="408" class="ann-output-label">3</text>
+                                    <text x="90"  y="421" class="ann-output-label">4</text>
+                                    <text x="10"  y="434" class="ann-output-label">5</text>
+                                    <text x="30"  y="447" class="ann-output-label">6</text>
+                                    <text x="50"  y="460" class="ann-output-label">7</text>
+                                    <text x="70"  y="473" class="ann-output-label">8</text>
+                                    <text x="90"  y="486" class="ann-output-label">9</text>
+                                </g>
+
+                                <!-- Signal particles container -->
+                                <g id="ann-signals"></g>
+                            </svg>
+                        </div>
+
+                        <!-- Phase indicators (vertical) -->
+                        <div class="ann-phase-col">
+                            <div class="ann-phase" id="phase-input"><div class="phase-dot" style="background:#A855F7"></div><span>Input</span></div>
+                            <div class="ann-phase-arrow-down">↓</div>
+                            <div class="ann-phase" id="phase-h1"><div class="phase-dot" style="background:#7C3AED"></div><span>D-256</span></div>
+                            <div class="ann-phase-arrow-down">↓</div>
+                            <div class="ann-phase" id="phase-h2"><div class="phase-dot" style="background:#6D28D9"></div><span>D-128</span></div>
+                            <div class="ann-phase-arrow-down">↓</div>
+                            <div class="ann-phase" id="phase-h3"><div class="phase-dot" style="background:#5B21B6"></div><span>D-64</span></div>
+                            <div class="ann-phase-arrow-down">↓</div>
+                            <div class="ann-phase" id="phase-output"><div class="phase-dot" style="background:#22C55E"></div><span>Out</span></div>
+                        </div>
+
+                        <!-- Compact result display -->
+                        <div class="ann-prediction-result" id="annPredResult">
+                            <div class="ann-pred-waiting" id="annPredWaiting">
+                                <i class="fa-solid fa-circle-dot"></i> Awaiting...
+                            </div>
+                            <div class="ann-pred-output-compact" id="annPredOutput" style="display:none">
+                                <div class="ann-compact-digit" id="annPredDigitVal">-</div>
+                                <div class="ann-compact-meta">
+                                    <div class="ann-compact-conf" id="annPredDigitConf">0.0%</div>
+                                    <div class="ann-compact-node">Y[<span id="annNodeIdx">-</span>]</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- RIGHT COLUMN: XAI ZONE -->
                     <div class="dashboard-card card-xai">
                         <div class="card-header">
@@ -438,243 +620,8 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- ANN NEURON VISUALIZER PANEL -->
-                <div class="ann-neuron-panel" id="annNeuronPanel">
-                    <div class="ann-neuron-header">
-                        <span class="pulse-dot" id="annPulseDot"></span>
-                        <h3><i class="fa-solid fa-brain"></i> Live ANN Neuron Model</h3>
-                        <div class="ann-status-badge" id="annStatusBadge">Idle</div>
-                    </div>
-
-                    <div class="ann-neuron-body">
-                        <!-- SVG ANN Visualization -->
-                        <div class="ann-svg-wrapper">
-                            <svg id="predAnnSvg" viewBox="0 0 520 320" xmlns="http://www.w3.org/2000/svg">
-                                <defs>
-                                    <linearGradient id="connGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                                        <stop offset="0%" stop-color="#7C3AED" stop-opacity="0.5"/>
-                                        <stop offset="100%" stop-color="#A855F7" stop-opacity="0.5"/>
-                                    </linearGradient>
-                                    <linearGradient id="activeConnGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                                        <stop offset="0%" stop-color="#A855F7"/>
-                                        <stop offset="100%" stop-color="#00F5FF"/>
-                                    </linearGradient>
-                                    <filter id="glow">
-                                        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-                                        <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                                    </filter>
-                                    <filter id="strongGlow">
-                                        <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
-                                        <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                                    </filter>
-                                </defs>
-
-                                <!-- Layer Labels -->
-                                <text x="52" y="18" class="ann-layer-label" text-anchor="middle">Input</text>
-                                <text x="52" y="30" class="ann-layer-label" text-anchor="middle">784</text>
-                                <text x="195" y="18" class="ann-layer-label" text-anchor="middle">Hidden 1</text>
-                                <text x="195" y="30" class="ann-layer-label" text-anchor="middle">Dense 256</text>
-                                <text x="300" y="18" class="ann-layer-label" text-anchor="middle">Hidden 2</text>
-                                <text x="300" y="30" class="ann-layer-label" text-anchor="middle">Dense 128</text>
-                                <text x="400" y="18" class="ann-layer-label" text-anchor="middle">Hidden 3</text>
-                                <text x="400" y="30" class="ann-layer-label" text-anchor="middle">Dense 64</text>
-                                <text x="480" y="18" class="ann-layer-label" text-anchor="middle">Output</text>
-                                <text x="480" y="30" class="ann-layer-label" text-anchor="middle">10 classes</text>
-
-                                <!-- Input to H1 connections (sampled) -->
-                                <g id="conn-in-h1" class="ann-conn-group">
-                                    <line x1="65" y1="60" x2="182" y2="55" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="65" y1="60" x2="182" y2="95" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="65" y1="60" x2="182" y2="135" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="65" y1="100" x2="182" y2="55" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="65" y1="100" x2="182" y2="95" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="65" y1="100" x2="182" y2="175" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="65" y1="140" x2="182" y2="55" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="65" y1="140" x2="182" y2="135" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="65" y1="140" x2="182" y2="215" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="65" y1="180" x2="182" y2="95" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="65" y1="180" x2="182" y2="175" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="65" y1="180" x2="182" y2="255" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="65" y1="220" x2="182" y2="135" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="65" y1="220" x2="182" y2="215" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="65" y1="220" x2="182" y2="255" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="65" y1="260" x2="182" y2="175" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="65" y1="260" x2="182" y2="215" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="65" y1="260" x2="182" y2="255" stroke="url(#connGrad)" stroke-width="1"/>
-                                </g>
-
-                                <!-- H1 to H2 connections -->
-                                <g id="conn-h1-h2" class="ann-conn-group">
-                                    <line x1="208" y1="55" x2="287" y2="70" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="208" y1="55" x2="287" y2="130" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="208" y1="95" x2="287" y2="70" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="208" y1="95" x2="287" y2="130" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="208" y1="95" x2="287" y2="190" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="208" y1="135" x2="287" y2="130" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="208" y1="135" x2="287" y2="190" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="208" y1="175" x2="287" y2="70" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="208" y1="175" x2="287" y2="130" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="208" y1="175" x2="287" y2="250" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="208" y1="215" x2="287" y2="190" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="208" y1="215" x2="287" y2="250" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="208" y1="255" x2="287" y2="190" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="208" y1="255" x2="287" y2="250" stroke="url(#connGrad)" stroke-width="1"/>
-                                </g>
-
-                                <!-- H2 to H3 connections -->
-                                <g id="conn-h2-h3" class="ann-conn-group">
-                                    <line x1="313" y1="70" x2="387" y2="80" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="313" y1="70" x2="387" y2="145" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="313" y1="130" x2="387" y2="80" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="313" y1="130" x2="387" y2="145" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="313" y1="130" x2="387" y2="210" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="313" y1="190" x2="387" y2="145" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="313" y1="190" x2="387" y2="210" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="313" y1="250" x2="387" y2="210" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="313" y1="250" x2="387" y2="275" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="313" y1="190" x2="387" y2="275" stroke="url(#connGrad)" stroke-width="1"/>
-                                </g>
-
-                                <!-- H3 to Output connections -->
-                                <g id="conn-h3-out" class="ann-conn-group">
-                                    <line x1="413" y1="80" x2="467" y2="48" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="413" y1="80" x2="467" y2="78" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="413" y1="80" x2="467" y2="108" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="413" y1="145" x2="467" y2="78" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="413" y1="145" x2="467" y2="138" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="413" y1="145" x2="467" y2="168" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="413" y1="210" x2="467" y2="138" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="413" y1="210" x2="467" y2="198" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="413" y1="210" x2="467" y2="258" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="413" y1="275" x2="467" y2="228" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="413" y1="275" x2="467" y2="258" stroke="url(#connGrad)" stroke-width="1"/>
-                                    <line x1="413" y1="275" x2="467" y2="288" stroke="url(#connGrad)" stroke-width="1"/>
-                                </g>
-
-                                <!-- INPUT LAYER NODES (6 visible + dots) -->
-                                <g id="layer-input" class="ann-layer-nodes">
-                                    <circle cx="52" cy="60" r="9" class="ann-node-circle input-circle"/>
-                                    <circle cx="52" cy="100" r="9" class="ann-node-circle input-circle"/>
-                                    <circle cx="52" cy="140" r="9" class="ann-node-circle input-circle"/>
-                                    <circle cx="52" cy="180" r="9" class="ann-node-circle input-circle"/>
-                                    <circle cx="52" cy="220" r="9" class="ann-node-circle input-circle"/>
-                                    <circle cx="52" cy="260" r="9" class="ann-node-circle input-circle"/>
-                                    <text x="52" y="295" class="ann-dots" text-anchor="middle">•••</text>
-                                    <text x="52" y="310" class="ann-layer-sublabel" text-anchor="middle">784 inputs</text>
-                                </g>
-
-                                <!-- HIDDEN LAYER 1 NODES -->
-                                <g id="layer-h1" class="ann-layer-nodes">
-                                    <circle cx="195" cy="55" r="9" class="ann-node-circle hidden-circle"/>
-                                    <circle cx="195" cy="95" r="9" class="ann-node-circle hidden-circle"/>
-                                    <circle cx="195" cy="135" r="9" class="ann-node-circle hidden-circle"/>
-                                    <circle cx="195" cy="175" r="9" class="ann-node-circle hidden-circle"/>
-                                    <circle cx="195" cy="215" r="9" class="ann-node-circle hidden-circle"/>
-                                    <circle cx="195" cy="255" r="9" class="ann-node-circle hidden-circle"/>
-                                    <text x="195" y="295" class="ann-dots" text-anchor="middle">•••</text>
-                                    <text x="195" y="310" class="ann-layer-sublabel" text-anchor="middle">256 ReLU</text>
-                                </g>
-
-                                <!-- HIDDEN LAYER 2 NODES -->
-                                <g id="layer-h2" class="ann-layer-nodes">
-                                    <circle cx="300" cy="70" r="9" class="ann-node-circle hidden-circle"/>
-                                    <circle cx="300" cy="130" r="9" class="ann-node-circle hidden-circle"/>
-                                    <circle cx="300" cy="190" r="9" class="ann-node-circle hidden-circle"/>
-                                    <circle cx="300" cy="250" r="9" class="ann-node-circle hidden-circle"/>
-                                    <text x="300" y="295" class="ann-dots" text-anchor="middle">•••</text>
-                                    <text x="300" y="310" class="ann-layer-sublabel" text-anchor="middle">128 ReLU</text>
-                                </g>
-
-                                <!-- HIDDEN LAYER 3 NODES -->
-                                <g id="layer-h3" class="ann-layer-nodes">
-                                    <circle cx="400" cy="80" r="9" class="ann-node-circle hidden-circle"/>
-                                    <circle cx="400" cy="145" r="9" class="ann-node-circle hidden-circle"/>
-                                    <circle cx="400" cy="210" r="9" class="ann-node-circle hidden-circle"/>
-                                    <circle cx="400" cy="275" r="9" class="ann-node-circle hidden-circle"/>
-                                    <text x="400" y="310" class="ann-layer-sublabel" text-anchor="middle">64 ReLU</text>
-                                </g>
-
-                                <!-- OUTPUT LAYER NODES (10 classes 0-9) -->
-                                <g id="layer-output" class="ann-layer-nodes">
-                                    <circle cx="480" cy="48" r="9" class="ann-node-circle output-circle" data-digit="0"/>
-                                    <circle cx="480" cy="78" r="9" class="ann-node-circle output-circle" data-digit="1"/>
-                                    <circle cx="480" cy="108" r="9" class="ann-node-circle output-circle" data-digit="2"/>
-                                    <circle cx="480" cy="138" r="9" class="ann-node-circle output-circle" data-digit="3"/>
-                                    <circle cx="480" cy="168" r="9" class="ann-node-circle output-circle" data-digit="4"/>
-                                    <circle cx="480" cy="198" r="9" class="ann-node-circle output-circle" data-digit="5"/>
-                                    <circle cx="480" cy="228" r="9" class="ann-node-circle output-circle" data-digit="6"/>
-                                    <circle cx="480" cy="258" r="9" class="ann-node-circle output-circle" data-digit="7"/>
-                                    <circle cx="480" cy="288" r="9" class="ann-node-circle output-circle" data-digit="8"/>
-                                    <circle cx="480" cy="318" r="9" class="ann-node-circle output-circle" data-digit="9"/>
-                                    <!-- Digit labels next to output nodes -->
-                                    <text x="496" y="52" class="ann-output-label">0</text>
-                                    <text x="496" y="82" class="ann-output-label">1</text>
-                                    <text x="496" y="112" class="ann-output-label">2</text>
-                                    <text x="496" y="142" class="ann-output-label">3</text>
-                                    <text x="496" y="172" class="ann-output-label">4</text>
-                                    <text x="496" y="202" class="ann-output-label">5</text>
-                                    <text x="496" y="232" class="ann-output-label">6</text>
-                                    <text x="496" y="262" class="ann-output-label">7</text>
-                                    <text x="496" y="292" class="ann-output-label">8</text>
-                                    <text x="496" y="322" class="ann-output-label">9</text>
-                                </g>
-
-                                <!-- Signal particles (animated during prediction) -->
-                                <g id="ann-signals"></g>
-                            </svg>
-                        </div>
-
-                        <!-- ANN Phase Labels -->
-                        <div class="ann-phase-row">
-                            <div class="ann-phase" id="phase-input">
-                                <div class="phase-dot" style="background:#A855F7"></div>
-                                <span>Input</span>
-                            </div>
-                            <div class="ann-phase-arrow">→</div>
-                            <div class="ann-phase" id="phase-h1">
-                                <div class="phase-dot" style="background:#7C3AED"></div>
-                                <span>Dense 256</span>
-                            </div>
-                            <div class="ann-phase-arrow">→</div>
-                            <div class="ann-phase" id="phase-h2">
-                                <div class="phase-dot" style="background:#6D28D9"></div>
-                                <span>Dense 128</span>
-                            </div>
-                            <div class="ann-phase-arrow">→</div>
-                            <div class="ann-phase" id="phase-h3">
-                                <div class="phase-dot" style="background:#5B21B6"></div>
-                                <span>Dense 64</span>
-                            </div>
-                            <div class="ann-phase-arrow">→</div>
-                            <div class="ann-phase" id="phase-output">
-                                <div class="phase-dot" style="background:#22C55E"></div>
-                                <span>Output</span>
-                            </div>
-                        </div>
-
-                        <!-- Predicted digit display -->
-                        <div class="ann-prediction-result" id="annPredResult">
-                            <div class="ann-pred-waiting" id="annPredWaiting">
-                                <i class="fa-solid fa-circle-dot"></i> Awaiting prediction...
-                            </div>
-                            <div class="ann-pred-output" id="annPredOutput" style="display:none">
-                                <div class="ann-pred-digit-box">
-                                    <div class="ann-pred-digit-label">Predicted Output</div>
-                                    <div class="ann-pred-digit-val" id="annPredDigitVal">-</div>
-                                    <div class="ann-pred-digit-conf" id="annPredDigitConf">0.0% confidence</div>
-                                </div>
-                                <div class="ann-pred-softmax">
-                                    <div class="ann-pred-softmax-label">Softmax Output Node</div>
-                                    <div class="ann-pred-softmax-node" id="annPredSoftmaxNode">Y[<span id="annNodeIdx">-</span>]</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </section>
-
         <!-- Prediction Journey / XAI Pipeline Section -->
         <section class="pipeline-section" id="pipeline">
             <div class="section-container">
