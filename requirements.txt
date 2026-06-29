@@ -1,0 +1,30 @@
+# Pixel2Digit — Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# Web Framework
+flask==3.0.3
+flask-cors==4.0.1
+
+# HTTP utility used by Flask
+werkzeug==3.0.3
+
+# Production WSGI server (required for Render / cloud deployment)
+gunicorn==22.0.0
+
+# Deep Learning
+tensorflow>=2.13.0
+
+# Numerical computing
+numpy>=1.24.0
+
+# Computer vision — headless build for cloud servers (no GUI/display needed)
+opencv-python-headless>=4.8.0
+
+# Image processing
+Pillow>=10.0.0
+
+# Machine learning metrics
+scikit-learn>=1.3.0
+
+# Plotting (used by train_model.py for confusion matrix)
+matplotlib>=3.7.0

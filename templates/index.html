@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+    <html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <meta name="description"
+            content="NeuroVision XAI Lab - Explainable Handwritten Digit Recognition using Artificial Neural Networks. Explore model performance, real-time predictions, heatmaps, and step-by-step activations.">
+        <title>NeuroVision XAI Lab - Explainable ANN Digit Recognition</title>
+
+        <!-- Google Fonts: Outfit and Inter -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
+            rel="stylesheet">
+
+        <!-- FontAwesome Icons -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+        <!-- Chart.js CDN -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+        <!-- Stylesheet -->
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=1.0.45">
+    </head>
+
+    <body>
+        <!-- 3D Canvas Particle Background -->
+        <canvas id="particleCanvas"></canvas>
+
+        <!-- Global Neural Network Background Animation -->
+        <div class="global-ann-bg">
+            <svg class="bg-ann-svg" viewBox="0 0 400 300">
+                <defs>
+                    <linearGradient id="bgLineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#7C3AED" stop-opacity="0.5" />
+                        <stop offset="100%" stop-color="#C084FC" stop-opacity="0.5" />
+                    </linearGradient>
+                </defs>
+
+                <!-- Connection Lines -->
+                <path d="M 50,50 L 200,60" stroke="url(#bgLineGrad)" stroke-width="1.5" class="network-path"></path>
+                <path d="M 50,50 L 200,120" stroke="url(#bgLineGrad)" stroke-width="1.5" class="network-path"></path>
+                <path d="M 50,50 L 200,180" stroke="url(#bgLineGrad)" stroke-width="1.5" class="network-path"></path>
+                <path d="M 50,50 L 200,240" stroke="url(#bgLineGrad)" stroke-width="1.5" class="network-path"></path>
+
+                <path d="M 50,110 L 200,60" stroke="url(#bgLineGrad)" stroke-width="1.5" class="network-path"></path>
+                <path d="M 50,110 L 200,120" stroke="url(#bgLineGrad)" stroke-width="1.5" class="network-path"></path>
+                <path d="M 50,110 L 200,180" stroke="url(#bgLineGrad)" stroke-width="1.5" class="network-path"></path>
+                <path d="M 50,110 L 200,240" stroke="url(#bgLineGrad)" stroke-width="1.5" class="network-path"></path>
+
+                <path d="M 50,190 L 200,60" stroke="url(#bgLineGrad)" stroke-width="1.5" class="network-path"></path>
+                <path d="M 50,190 L 200,120" stroke="url(#bgLineGrad)" stroke-width="1.5" class="network-path"></path>
+                <path d="M 50,190 L 200,180" stroke="url(#bgLineGrad)" stroke-width="1.5" class="network-path"></path>
+                <path d="M 50,190 L 200,240" stroke="url(#bgLineGrad)" stroke-width="1.5" class="network-path"></path>
+
+                <path d="M 50,250 L 200,60" stroke="url(#bgLineGrad)" stroke-width="1.5" class="network-path"></path>
+                <path d="M 50,250 L 200,120" stroke="url(#bgLineGrad)" stroke-width="1.5" class="network-path"></path>
+                <path d="M 50,250 L 200,180" stroke="url(#bgLineGrad)" stroke-width="1.5" class="network-path"></path>
+                <path d="M 50,250 L 200,240" stroke="url(#bgLineGrad)" stroke-width="1.5" class="network-path"></path>
+
+                <!-- Hidden to Output Layer -->
+                <path d="M 200,60 L 350,100" stroke="url(#bgLineGrad)" stroke-width="1.5" class="network-path"></path>
+                <path d="M 200,60 L 350,200" stroke="url(#bgLineGrad)" stroke-width="1.5" class="network-path"></path>
+
+                <path d="M 200,120 L 350,100" stroke="url(#bgLineGrad)" stroke-width="1.5" class="network-path"></path>
+                <path d="M 200,120 L 350,200" stroke="url(#bgLineGrad)" stroke-width="1.5" class="network-path"></path>
+
+                <path d="M 200,180 L 350,100" stroke="url(#bgLineGrad)" stroke-width="1.5" class="network-path"></path>
+                <path d="M 200,180 L 350,200" stroke="url(#bgLineGrad)" stroke-width="1.5" class="network-path"></path>
+
+                <path d="M 200,240 L 350,100" stroke="url(#bgLineGrad)" stroke-width="1.5" class="network-path"></path>
+                <path d="M 200,240 L 350,200" stroke="url(#bgLineGrad)" stroke-width="1.5" class="network-path"></path>
+
+                <!-- Moving Signals -->
+                <circle cx="50" cy="50" r="3" fill="#7C3AED" class="signal-particle" style="animation-delay: 0s;"></circle>
+                <circle cx="50" cy="110" r="3" fill="#C084FC" class="signal-particle" style="animation-delay: 1.2s;"></circle>
+                <circle cx="50" cy="190" r="3" fill="#7C3AED" class="signal-particle" style="animation-delay: 0.6s;"></circle>
+                <circle cx="50" cy="250" r="3" fill="#C084FC" class="signal-particle" style="animation-delay: 1.8s;"></circle>
+
+                <!-- Nodes -->
+                <circle cx="50" cy="50" r="8" class="ann-node input-node active-node"></circle>
+                <circle cx="50" cy="110" r="8" class="ann-node input-node active-node"></circle>
+                <circle cx="50" cy="190" r="8" class="ann-node input-node active-node"></circle>
+                <circle cx="50" cy="250" r="8" class="ann-node input-node active-node"></circle>
+
+                <circle cx="200" cy="60" r="8" class="ann-node hidden-node"></circle>
+                <circle cx="200" cy="120" r="8" class="ann-node hidden-node"></circle>
+                <circle cx="200" cy="180" r="8" class="ann-node hidden-node"></circle>
+                <circle cx="200" cy="240" r="8" class="ann-node hidden-node"></circle>
+
+                <circle cx="350" cy="100" r="8" class="ann-node output-node"></circle>
+                <circle cx="350" cy="200" r="8" class="ann-node output-node active-node pulse-node"></circle>
+            </svg>
+        </div>
+
+        <!-- Sticky Navbar -->
+        <nav class="navbar" id="navbar">
+            <div class="nav-container">
+                <a href="#" class="logo">
+                    <span class="logo-icon">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <!-- Hexagon background -->
+                            <polygon points="16,2 28,9 28,23 16,30 4,23 4,9" fill="none" stroke="#A855F7" stroke-width="1.5" opacity="0.8"/>
+                            <!-- Central node -->
+                            <circle cx="16" cy="16" r="3" fill="#A855F7"/>
+                            <!-- Radial connections -->
+                            <line x1="16" y1="2" x2="16" y2="13" stroke="#D8B4FE" stroke-width="1" opacity="0.6"/>
+                            <line x1="28" y1="9" x2="19" y2="14.5" stroke="#D8B4FE" stroke-width="1" opacity="0.6"/>
+                            <line x1="28" y1="23" x2="19" y2="17.5" stroke="#D8B4FE" stroke-width="1" opacity="0.6"/>
+                            <line x1="16" y1="30" x2="16" y2="19" stroke="#D8B4FE" stroke-width="1" opacity="0.6"/>
+                            <line x1="4" y1="23" x2="13" y2="17.5" stroke="#D8B4FE" stroke-width="1" opacity="0.6"/>
+                            <line x1="4" y1="9" x2="13" y2="14.5" stroke="#D8B4FE" stroke-width="1" opacity="0.6"/>
+                            <!-- Corner nodes -->
+                            <circle cx="16" cy="2" r="1.8" fill="#A855F7" opacity="0.7"/>
+                            <circle cx="28" cy="9" r="1.8" fill="#A855F7" opacity="0.7"/>
+                            <circle cx="28" cy="23" r="1.8" fill="#A855F7" opacity="0.7"/>
+                            <circle cx="16" cy="30" r="1.8" fill="#A855F7" opacity="0.7"/>
+                            <circle cx="4" cy="23" r="1.8" fill="#A855F7" opacity="0.7"/>
+                            <circle cx="4" cy="9" r="1.8" fill="#A855F7" opacity="0.7"/>
+                        </svg>
+                    </span>
+                    <span class="logo-text">NeuroVision <span class="accent-text">XAI</span></span>
+                </a>
+                <ul class="nav-links">
+                    <li><a href="#home" class="active"><i class="fa-solid fa-house"></i> Home</a></li>
+                    <li><a href="#predict"><i class="fa-solid fa-microscope"></i> Predict</a></li>
+                    <li><a href="#pipeline"><i class="fa-solid fa-route"></i> XAI Pipeline</a></li>
+                    <li><a href="#dashboard"><i class="fa-solid fa-chart-line"></i> Model Dashboard</a></li>
+                    <li><a href="#team"><i class="fa-solid fa-users"></i> Team</a></li>
+                </ul>
+                <div class="nav-toggle" id="navToggle">
+                    <i class="fa-solid fa-bars"></i>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <section class="hero-section" id="home">
+            <div class="hero-container">
+                <div class="hero-content">
+                    <h1 class="hero-title">NeuroVision <span class="glow-text">XAI Lab</span></h1>
+                    <h2 class="hero-subtitle">Explainable Handwritten Digit Recognition using Artificial Neural Networks</h2>
+                    <p class="hero-tagline">AI is not just predicting — it is explaining.</p>
+                    <div class="hero-buttons">
+                        <a href="#predict" class="btn btn-primary"><i class="fa-solid fa-play"></i> Start Prediction</a>
+                        <a href="#pipeline" class="btn btn-secondary"><i class="fa-solid fa-circle-info"></i> Explore AI Pipeline</a>
+                    </div>
+                </div>
+                
+                <div class="hero-visual">
+                    <div class="ann-visual-container">
+                        <div class="ann-header">
+                            <span class="pulse-dot"></span> Live ANN Decision Flow
+                        </div>
+                        <!-- SVG Neural Network Animation -->
+                        <svg id="heroAnnSvg" viewBox="0 0 400 300">
+                            <defs>
+                                <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stop-color="#8B5CF6" stop-opacity="0.6" />
+                                    <stop offset="100%" stop-color="#00F5FF" stop-opacity="0.6" />
+                                </linearGradient>
+                            </defs>
+                            
+                            <!-- Connection Lines -->
+                            <!-- Input to Hidden Layer -->
+                            <path d="M 50,50 L 200,60" stroke="url(#lineGrad)" stroke-width="1.5" class="network-path"></path>
+                            <path d="M 50,50 L 200,120" stroke="url(#lineGrad)" stroke-width="1.5" class="network-path"></path>
+                            <path d="M 50,50 L 200,180" stroke="url(#lineGrad)" stroke-width="1.5" class="network-path"></path>
+                            <path d="M 50,50 L 200,240" stroke="url(#lineGrad)" stroke-width="1.5" class="network-path"></path>
+
+                            <path d="M 50,110 L 200,60" stroke="url(#lineGrad)" stroke-width="1.5" class="network-path"></path>
+                            <path d="M 50,110 L 200,120" stroke="url(#lineGrad)" stroke-width="1.5" class="network-path"></path>
+                            <path d="M 50,110 L 200,180" stroke="url(#lineGrad)" stroke-width="1.5" class="network-path"></path>
+                            <path d="M 50,110 L 200,240" stroke="url(#lineGrad)" stroke-width="1.5" class="network-path"></path>
+
+                            <path d="M 50,190 L 200,60" stroke="url(#lineGrad)" stroke-width="1.5" class="network-path"></path>
+                            <path d="M 50,190 L 200,120" stroke="url(#lineGrad)" stroke-width="1.5" class="network-path"></path>
+                            <path d="M 50,190 L 200,180" stroke="url(#lineGrad)" stroke-width="1.5" class="network-path"></path>
+                            <path d="M 50,190 L 200,240" stroke="url(#lineGrad)" stroke-width="1.5" class="network-path"></path>
+
+                            <path d="M 50,250 L 200,60" stroke="url(#lineGrad)" stroke-width="1.5" class="network-path"></path>
+                            <path d="M 50,250 L 200,120" stroke="url(#lineGrad)" stroke-width="1.5" class="network-path"></path>
+                            <path d="M 50,250 L 200,180" stroke="url(#lineGrad)" stroke-width="1.5" class="network-path"></path>
+                            <path d="M 50,250 L 200,240" stroke="url(#lineGrad)" stroke-width="1.5" class="network-path"></path>
+
+                            <!-- Hidden to Output Layer -->
+                            <path d="M 200,60 L 350,100" stroke="url(#lineGrad)" stroke-width="1.5" class="network-path"></path>
+                            <path d="M 200,60 L 350,200" stroke="url(#lineGrad)" stroke-width="1.5" class="network-path"></path>
+
+                            <path d="M 200,120 L 350,100" stroke="url(#lineGrad)" stroke-width="1.5" class="network-path"></path>
+                            <path d="M 200,120 L 350,200" stroke="url(#lineGrad)" stroke-width="1.5" class="network-path"></path>
+
+                            <path d="M 200,180 L 350,100" stroke="url(#lineGrad)" stroke-width="1.5" class="network-path"></path>
+                            <path d="M 200,180 L 350,200" stroke="url(#lineGrad)" stroke-width="1.5" class="network-path"></path>
+
+                            <path d="M 200,240 L 350,100" stroke="url(#lineGrad)" stroke-width="1.5" class="network-path"></path>
+                            <path d="M 200,240 L 350,200" stroke="url(#lineGrad)" stroke-width="1.5" class="network-path"></path>
+
+                            <!-- Moving Signals (Circles) -->
+                            <circle cx="50" cy="50" r="3" fill="#00F5FF" class="signal-particle" style="animation-delay: 0s;"></circle>
+                            <circle cx="50" cy="110" r="3" fill="#8B5CF6" class="signal-particle" style="animation-delay: 1.2s;"></circle>
+                            <circle cx="50" cy="190" r="3" fill="#00F5FF" class="signal-particle" style="animation-delay: 0.6s;"></circle>
+                            <circle cx="50" cy="250" r="3" fill="#8B5CF6" class="signal-particle" style="animation-delay: 1.8s;"></circle>
+
+                            <!-- Nodes -->
+                            <!-- Input Layer -->
+                            <circle cx="50" cy="50" r="8" class="ann-node input-node active-node"></circle>
+                            <circle cx="50" cy="110" r="8" class="ann-node input-node active-node"></circle>
+                            <circle cx="50" cy="190" r="8" class="ann-node input-node active-node"></circle>
+                            <circle cx="50" cy="250" r="8" class="ann-node input-node active-node"></circle>
+
+                            <!-- Hidden Layer -->
+                            <circle cx="200" cy="60" r="8" class="ann-node hidden-node"></circle>
+                            <circle cx="200" cy="120" r="8" class="ann-node hidden-node"></circle>
+                            <circle cx="200" cy="180" r="8" class="ann-node hidden-node"></circle>
+                            <circle cx="200" cy="240" r="8" class="ann-node hidden-node"></circle>
+
+                            <!-- Output Layer -->
+                            <circle cx="350" cy="100" r="8" class="ann-node output-node"></circle>
+                            <circle cx="350" cy="200" r="8" class="ann-node output-node active-node pulse-node"></circle>
+
+                            <!-- Text labels -->
+                            <text x="50" y="32" class="ann-node-label" text-anchor="middle">X[0]</text>
+                            <text x="50" y="275" class="ann-node-label" text-anchor="middle">X[783]</text>
+                            
+                            <text x="200" y="42" class="ann-node-label" text-anchor="middle">H1[0]</text>
+                            <text x="200" y="265" class="ann-node-label" text-anchor="middle">H3[63]</text>
+                            
+                            <text x="350" y="82" class="ann-node-label" text-anchor="middle">Y[0]</text>
+                            <text x="350" y="225" class="ann-node-label" text-anchor="middle">Y[9]</text>
+                        </svg>
+                        
+                        <div class="ann-output-display">
+                            <div class="ann-output-box">
+                                <span class="ann-output-digit" id="heroOutputDigit">5</span>
+                            </div>
+                            <div class="ann-output-details">
+                                <div class="ann-output-title">Active Output</div>
+                                <div class="ann-output-desc">Live confidence tracking</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Prediction Dashboard -->
+        <section class="dashboard-section" id="predict">
+            <div class="section-container">
+                <h2 class="section-title">AI Prediction Dashboard</h2>
+                <p class="section-subtitle">Interact with the Artificial Neural Network. Upload an image or draw a digit
+                    to examine how the models compute predictions and explanations.</p>
+
+                <div class="dashboard-grid">
+                    <!-- LEFT COLUMN: INPUT ZONE -->
+                    <div class="dashboard-card card-input">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-pen-nib"></i> Input Digit</h3>
+                        </div>
+
+                        <!-- Tabs to switch between upload and draw -->
+                        <div class="tab-container">
+                            <button class="tab-btn active" onclick="switchInputTab('draw')"><i
+                                    class="fa-solid fa-paint-brush"></i> Draw Digit</button>
+                            <button class="tab-btn" onclick="switchInputTab('upload')"><i
+                                    class="fa-solid fa-upload"></i> Upload Image</button>
+                        </div>
+
+                        <div class="tab-content active" id="drawTab">
+                            <div class="canvas-container">
+                                <canvas id="drawingCanvas" width="280" height="280"></canvas>
+                            </div>
+
+                            <div class="brush-controls">
+                                <div class="brush-info">
+                                    <span>Brush Size: <span id="brushSizeVal">15px</span></span>
+                                </div>
+                                <input type="range" id="brushSlider" min="5" max="30" value="15" class="range-slider">
+                            </div>
+
+                            <div class="btn-group">
+                                <button id="clearBtn" class="btn btn-muted"><i class="fa-solid fa-eraser"></i> Clear
+                                    Canvas</button>
+                                <button id="predictDrawBtn" class="btn btn-primary"><i
+                                        class="fa-solid fa-network-wired"></i> Predict Digit</button>
+                            </div>
+                        </div>
+
+                        <div class="tab-content" id="uploadTab">
+                            <div class="upload-area" id="dropArea">
+                                <div class="upload-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                                <p class="upload-text">Drag & Drop image here or <span class="highlight">Browse</span>
+                                </p>
+                                <span class="upload-subtext">Supported: PNG, JPG, JPEG (Square recommended)</span>
+                                <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                            </div>
+
+                            <!-- Image Preview Area -->
+                            <div class="preview-container" id="previewContainer">
+                                <img id="imagePreview" src="#" alt="Uploaded Preview">
+                                <button id="removeImgBtn" class="remove-preview-btn"><i
+                                        class="fa-solid fa-times"></i></button>
+                            </div>
+
+                            <div class="btn-group">
+                                <button id="predictUploadBtn" class="btn btn-primary" disabled><i
+                                        class="fa-solid fa-network-wired"></i> Predict Uploaded</button>
+                            </div>
+                        </div>
+
+                        <div class="reset-wrapper">
+                            <button id="resetBtn" class="btn btn-danger btn-full"><i
+                                    class="fa-solid fa-rotate-right"></i> Reset Lab System</button>
+                        </div>
+                    </div>
+
+                    <!-- CENTER COLUMN: AI RESULTS -->
+                    <div class="dashboard-card card-results">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-chart-pie"></i> Neural Network Prediction</h3>
+                        </div>
+
+                        <div class="prediction-main-glow">
+                            <div class="pred-label">ANN Classification</div>
+                            <div class="pred-value" id="predDigit">-</div>
+                            <div class="pred-confidence">
+                                <span id="predConfidenceText">0.0%</span> Confidence
+                            </div>
+                            <div class="progress-bar-wrapper">
+                                <div class="progress-bar-fill" id="predConfidenceBar" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <div class="metrics-mini">
+                            <div class="metric-mini-item">
+                                <span class="label">Processing Time</span>
+                                <span class="val" id="processingTime">0 ms</span>
+                            </div>
+                            <div class="metric-mini-item">
+                                <span class="label">Target Class</span>
+                                <span class="val" id="targetClass">0-9 Digits</span>
+                            </div>
+                        </div>
+
+                        <div class="sub-predictions">
+                            <h4>Top 3 Predictions</h4>
+                            <div class="top-preds-list" id="topPredictionsList">
+                                <div class="top-pred-row empty-row">No input analyzed yet</div>
+                            </div>
+                        </div>
+
+                        <div class="probability-chart-container">
+                            <h4>Probability Distribution</h4>
+                            <div class="chart-wrapper">
+                                <canvas id="probabilityChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COLUMN: XAI ZONE -->
+                    <div class="dashboard-card card-xai">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-eye"></i> Explainable AI Zone</h3>
+                        </div>
+
+                        <!-- Neural Network Active Layer Glowing Animation Visualizer -->
+                        <div class="xai-ann-flow-panel">
+                            <h4>Active ANN Layers</h4>
+                            <div class="network-layer-indicators" id="layerIndicators">
+                                <div class="layer-indicator" data-layer="input">
+                                    <span class="layer-badge input-badge">Input</span>
+                                    <span class="layer-name">Flatten (784)</span>
+                                    <span class="layer-glow-dot"></span>
+                                </div>
+                                <div class="layer-indicator" data-layer="dense1">
+                                    <span class="layer-badge dense-badge">Dense</span>
+                                    <span class="layer-name">Dense_256 (ReLU)</span>
+                                    <span class="layer-glow-dot"></span>
+                                </div>
+                                <div class="layer-indicator" data-layer="dense2">
+                                    <span class="layer-badge dense-badge">Dense</span>
+                                    <span class="layer-name">Dense_128 (ReLU)</span>
+                                    <span class="layer-glow-dot"></span>
+                                </div>
+                                <div class="layer-indicator" data-layer="dropout">
+                                    <span class="layer-badge dropout-badge">Drop</span>
+                                    <span class="layer-name">Dropout (0.2)</span>
+                                    <span class="layer-glow-dot"></span>
+                                </div>
+                                <div class="layer-indicator" data-layer="dense3">
+                                    <span class="layer-badge dense-badge">Dense</span>
+                                    <span class="layer-name">Dense_64 (ReLU)</span>
+                                    <span class="layer-glow-dot"></span>
+                                </div>
+                                <div class="layer-indicator" data-layer="output">
+                                    <span class="layer-badge output-badge">Output</span>
+                                    <span class="layer-name">Dense_10 (Softmax)</span>
+                                    <span class="layer-glow-dot"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="xai-explanation-box">
+                            <div class="xai-header">
+                                <span class="xai-title-icon"><i class="fa-solid fa-quote-left"></i></span> Why AI
+                                Predicted This
+                            </div>
+                            <div class="xai-body" id="xaiExplanationText">
+                                Draw or upload a digit and execute prediction to generate structural descriptions. The
+                                explanation AI will analyze loops, strokes, contours, and node activations.
+                            </div>
+                        </div>
+
+                        <div class="xai-explanation-box secondary-xai">
+                            <div class="xai-header">
+                                <span class="xai-title-icon"><i class="fa-solid fa-circle-question"></i></span> Why Not
+                                Other Digits?
+                            </div>
+                            <div class="xai-body" id="whyNotList">
+                                <div class="why-not-empty">Details will display alternate digit evaluations and
+                                    activation barriers here.</div>
+                            </div>
+                        </div>
+
+                        <!-- Mini Heatmap Grid Widget -->
+                        <div class="pixel-heatmap-widget">
+                            <h4>Pixel Grid Heatmap (28x28 ANN View)</h4>
+                            <div class="heatmap-wrapper">
+                                <div class="heatmap-grid" id="miniHeatmapGrid"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Prediction Journey / XAI Pipeline Section -->
+        <section class="pipeline-section" id="pipeline">
+            <div class="section-container">
+                <h2 class="section-title">Prediction Journey & XAI Pipeline</h2>
+                <p class="section-subtitle">Follow the linear data pipeline. Watch in real-time as the image data moves
+                    through conversions, layers, and reasoning stages.</p>
+
+                <div class="pipeline-flow">
+                    <div class="pipeline-step" id="step-1">
+                        <div class="step-num">1</div>
+                        <div class="step-icon"><i class="fa-solid fa-image"></i></div>
+                        <div class="step-title">Image Received</div>
+                        <div class="step-desc">Digit loaded into workspace</div>
+                    </div>
+                    <div class="pipeline-step" id="step-2">
+                        <div class="step-num">2</div>
+                        <div class="step-icon"><i class="fa-solid fa-fill-drip"></i></div>
+                        <div class="step-title">Grayscale</div>
+                        <div class="step-desc">Colors filtered to grayscale values</div>
+                    </div>
+                    <div class="pipeline-step" id="step-3">
+                        <div class="step-num">3</div>
+                        <div class="step-icon"><i class="fa-solid fa-compress"></i></div>
+                        <div class="step-title">Resized 28x28</div>
+                        <div class="step-desc">Resolution compressed for MNIST</div>
+                    </div>
+                    <div class="pipeline-step" id="step-4">
+                        <div class="step-num">4</div>
+                        <div class="step-icon"><i class="fa-solid fa-percentage"></i></div>
+                        <div class="step-title">Normalized</div>
+                        <div class="step-desc">Pixel values scaled [0.0 - 1.0]</div>
+                    </div>
+                    <div class="pipeline-step" id="step-5">
+                        <div class="step-num">5</div>
+                        <div class="step-icon"><i class="fa-solid fa-align-justify"></i></div>
+                        <div class="step-title">Flattened</div>
+                        <div class="step-desc">Converted to 784-input 1D vector</div>
+                    </div>
+                    <div class="pipeline-step" id="step-6">
+                        <div class="step-num">6</div>
+                        <div class="step-icon"><i class="fa-solid fa-brain"></i></div>
+                        <div class="step-title">ANN Forward</div>
+                        <div class="step-desc">Propagated through hidden nodes</div>
+                    </div>
+                    <div class="pipeline-step" id="step-7">
+                        <div class="step-num">7</div>
+                        <div class="step-icon"><i class="fa-solid fa-chart-simple"></i></div>
+                        <div class="step-title">Softmax Prob</div>
+                        <div class="step-desc">Probability distributions outputted</div>
+                    </div>
+                    <div class="pipeline-step" id="step-8">
+                        <div class="step-num">8</div>
+                        <div class="step-icon"><i class="fa-solid fa-circle-check"></i></div>
+                        <div class="step-title">XAI Decoded</div>
+                        <div class="step-desc">Decision explained and verified</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Preprocessing Visualization Section -->
+        <section class="preprocessing-section">
+            <div class="section-container">
+                <h2 class="section-title">Preprocessing Visualizations</h2>
+                <p class="section-subtitle">Real-time snapshots of image data after passing through each conversion
+                    stage in the backend preprocessing engine.</p>
+
+                <div class="preproc-grid">
+                    <!-- Card 1: Original -->
+                    <div class="preproc-card">
+                        <div class="preproc-card-header">Original Input</div>
+                        <div class="preproc-img-box" id="preproc-original-box">
+                            <span class="preproc-placeholder"><i class="fa-solid fa-image"></i> Waiting for
+                                digit...</span>
+                        </div>
+                        <div class="preproc-desc">RAW image structure. Includes channels, borders, and margins.</div>
+                    </div>
+                    <!-- Card 2: Grayscale -->
+                    <div class="preproc-card">
+                        <div class="preproc-card-header">Grayscale Image</div>
+                        <div class="preproc-img-box" id="preproc-grayscale-box">
+                            <span class="preproc-placeholder"><i class="fa-solid fa-fill-drip"></i> Waiting for
+                                digit...</span>
+                        </div>
+                        <div class="preproc-desc">Single-channel transformation isolating lighting contrast.</div>
+                    </div>
+                    <!-- Card 3: Resized 28x28 -->
+                    <div class="preproc-card">
+                        <div class="preproc-card-header">Resized 28×28 Image</div>
+                        <div class="preproc-img-box" id="preproc-resized-box">
+                            <span class="preproc-placeholder"><i class="fa-solid fa-minimize"></i> Waiting for
+                                digit...</span>
+                        </div>
+                        <div class="preproc-desc">Downscaled matrix matching inputs for Neural network features.</div>
+                    </div>
+                    <!-- Card 4: Normalized -->
+                    <div class="preproc-card">
+                        <div class="preproc-card-header">Normalized Matrix</div>
+                        <div class="preproc-img-box" id="preproc-normalized-box">
+                            <span class="preproc-placeholder"><i class="fa-solid fa-calculator"></i> Waiting for
+                                digit...</span>
+                        </div>
+                        <div class="preproc-desc">Rescaled intensities [0, 255] mapped to mathematical [0.0, 1.0].</div>
+                    </div>
+                    <!-- Card 5: Interactive Pixel Grid -->
+                    <div class="preproc-card large-preproc-card">
+                        <div class="preproc-card-header">Detailed Pixel Heatmap</div>
+                        <div class="preproc-heatmap-container">
+                            <div class="preproc-heatmap-grid" id="preprocHeatmapGrid"></div>
+                            <div class="heatmap-info">
+                                <div class="heatmap-legend">
+                                    <span>Background (0.0)</span>
+                                    <span class="gradient-bar"></span>
+                                    <span>Signal (1.0)</span>
+                                </div>
+                                <p class="heatmap-summary">Hover cells to view exact input intensities mapping directly
+                                    into input layer node <code>X[0-783]</code>.</p>
+                                <div class="cell-info-display" id="heatmapCellVal">Cell Value: - | Cell ID: -</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Model Performance Dashboard Section -->
+        <section class="performance-section" id="dashboard">
+            <div class="section-container">
+                <h2 class="section-title">Model Performance Dashboard</h2>
+                <p class="section-subtitle">Live weights performance metrics and mathematical structures of the
+                    underlying Artificial Neural Network.</p>
+
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon"><i class="fa-solid fa-bullseye"></i></div>
+                        <div class="metric-info">
+                            <span class="metric-val" id="modelAccuracy">98.50%</span>
+                            <span class="metric-name">Global Accuracy</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon"><i class="fa-solid fa-crosshairs"></i></div>
+                        <div class="metric-info">
+                            <span class="metric-val" id="modelPrecision">98.20%</span>
+                            <span class="metric-name">Precision Score</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon"><i class="fa-solid fa-rotate"></i></div>
+                        <div class="metric-info">
+                            <span class="metric-val" id="modelRecall">98.10%</span>
+                            <span class="metric-name">Recall Score</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon"><i class="fa-solid fa-chart-line"></i></div>
+                        <div class="metric-info">
+                            <span class="metric-val" id="modelF1">98.15%</span>
+                            <span class="metric-name">F1 Score</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-double-grid">
+                    <!-- ANN Architecture details -->
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-sitemap"></i> Network Hyperparameters</h3>
+                        </div>
+                        <table class="params-table">
+                            <tbody>
+                                <tr>
+                                    <td>Optimizer</td>
+                                    <td id="modelOptimizer" class="val-highlight">Adam</td>
+                                </tr>
+                                <tr>
+                                    <td>Loss Function</td>
+                                    <td id="modelLoss" class="val-highlight">Categorical Crossentropy</td>
+                                </tr>
+                                <tr>
+                                    <td>Total Layers</td>
+                                    <td>6 Layers</td>
+                                </tr>
+                                <tr>
+                                    <td>Input Shape</td>
+                                    <td>(28, 28, 1) Flat to 784</td>
+                                </tr>
+                                <tr>
+                                    <td>Batch Size</td>
+                                    <td>64</td>
+                                </tr>
+                                <tr>
+                                    <td>Dropout Rate</td>
+                                    <td>0.2 (20% neural masking)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="arch-flow-steps">
+                            <h4>Structured Layers</h4>
+                            <ul class="layer-bullets" id="archLayerList">
+                                <li><span class="l-step">Input Layer</span> (784 features)</li>
+                                <li><span class="l-step">Dense_256</span> (ReLU Activation)</li>
+                                <li><span class="l-step">Dense_128</span> (ReLU Activation)</li>
+                                <li><span class="l-step">Dropout</span> (Regularization)</li>
+                                <li><span class="l-step">Dense_64</span> (ReLU Activation)</li>
+                                <li><span class="l-step">Output_10</span> (Softmax Activation)</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Confusion Matrix 10x10 -->
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-table-cells-hashes"></i> Confusion Matrix (MNIST Validation)</h3>
+                        </div>
+                        <div class="confusion-matrix-container">
+                            <div class="matrix-wrapper">
+                                <table class="confusion-matrix" id="confusionMatrixTable">
+                                    <thead>
+                                        <tr>
+                                            <th>P\A</th>
+                                            <th>0</th>
+                                            <th>1</th>
+                                            <th>2</th>
+                                            <th>3</th>
+                                            <th>4</th>
+                                            <th>5</th>
+                                            <th>6</th>
+                                            <th>7</th>
+                                            <th>8</th>
+                                            <th>9</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="confusionMatrixBody">
+                                        <!-- Populated dynamically via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="matrix-label-axis">
+                                <span class="axis-predicted">Predicted (Rows)</span> vs. <span
+                                    class="axis-actual">Actual (Columns)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Wrong Predictions Gallery -->
+        <section class="wrong-gallery-section">
+            <div class="section-container">
+                <h2 class="section-title">Wrong Predictions Gallery</h2>
+                <p class="section-subtitle">Analysis of fringe handwriting styles, strokes, and border cases where the
+                    neural network misclassified digits.</p>
+
+                <div class="wrong-grid" id="wrongPredictionsGrid">
+                    <!-- Fallback/Mock structure loaded by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Team Section -->
+        <section class="team-section" id="team">
+            <div class="section-container">
+                <h2 class="section-title">NeuroVision XAI Team</h2>
+                <p class="section-subtitle">The developers and scientists behind the development of the explainable ANN
+                    digit recognizer.</p>
+
+                <div class="team-grid">
+                    <div class="team-card">
+                        <div class="member-avatar"><i class="fa-solid fa-code"></i></div>
+                        <h3>Member 1</h3>
+                        <p class="member-role">Frontend Architect</p>
+                        <p class="member-desc">Designed responsive dashboards, glassmorphism CSS, and 3D particle
+                            animations.</p>
+                    </div>
+                    <div class="team-card">
+                        <div class="member-avatar"><i class="fa-solid fa-server"></i></div>
+                        <h3>Member 2</h3>
+                        <p class="member-role">Backend Engineer</p>
+                        <p class="member-desc">Engineered Flask APIs, REST endpoints, and image transformations.</p>
+                    </div>
+                    <div class="team-card">
+                        <div class="member-avatar"><i class="fa-solid fa-gears"></i></div>
+                        <h3>Member 3</h3>
+                        <p class="member-role">Machine Learning Scientist</p>
+                        <p class="member-desc">Designed and trained the ANN model, optimizer parameters, and activation
+                            limits.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-container">
+                <p class="footer-title">NeuroVision XAI Lab</p>
+                <p class="footer-meta">Explainable AI • ANN • Handwritten Digit Recognition</p>
+                <p class="footer-copyright">© 2026 NeuroVision XAI Lab. All rights reserved.</p>
+            </div>
+        </footer>
+
+        <!-- Toasts Container for notifications -->
+        <div class="toast-container" id="toastContainer"></div>
+
+        <!-- JavaScript script link -->
+        <script src="{{ url_for('static', filename='script.js') }}?v=1.0.45"></script>
+    </body>
+
+    </html>

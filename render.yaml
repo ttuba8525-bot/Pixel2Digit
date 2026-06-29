@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: neurovision-xai
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --workers 2 --worker-class sync --timeout 120 --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.0"
+      - key: TF_ENABLE_ONEDNN_OPTS
+        value: "0"
+    healthCheckPath: /api-info
